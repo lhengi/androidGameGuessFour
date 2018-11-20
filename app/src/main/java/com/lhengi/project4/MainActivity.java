@@ -1,12 +1,18 @@
 package com.lhengi.project4;
 
+import android.content.Intent;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.os.Message;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
     // this will hold the secrets
 
     public boolean endGame = false;
+
+    public String thread1secretStr;
+    public String thread2secretStr;
 
 
     public static final int SET_SECRET_1 = 1;
@@ -45,17 +54,27 @@ public class MainActivity extends AppCompatActivity {
             {
                 case(SET_SECRET_1):
                     thread1SecretView.setText((String)msg.obj);
+                    thread1secretStr = (String) msg.obj;
                     break;
                 case(SET_SECRET_2):
                     thread2SecretView.setText((String)msg.obj);
+                    thread2secretStr = (String) msg.obj;
                     break;
                 case(UPDATE_THREAD1_GUESS):
+                    if (endGame)
+                        break;
                     String displayText = (String) msg.obj;
                     thread1GuessView.setText(thread1GuessView.getText()+"\n"+displayText);
+                    if(msg.arg1 == 1)
+                        endGame = true;
                     break;
                 case(UPDATE_THREAD2_GUESS):
+                    if (endGame)
+                        break;
                     String displayText2 = (String) msg.obj;
                     thread2GuessView.setText(thread2GuessView.getText()+"\n"+displayText2);
+                    if(msg.arg1 == 1)
+                        endGame = true;
                     break;
             }
         }
@@ -78,6 +97,35 @@ public class MainActivity extends AppCompatActivity {
         t1.start();
         t2.start();
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.
+                menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.start:
+                //creating intent to restart activity
+                Intent i = new Intent(MainActivity.this,MainActivity.class);
+                startActivity(i);
+                finish();
+                break;
+            case R.id.exit:
+                //Exiting the app
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    finishAndRemoveTask();
+                }
+                break;
+            default:break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -139,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         boolean[] lockArr = {false,false,false,false};
 
         int numCorrect = Integer.parseInt(feedBackArr[0]);
-        System.out.println("******"+feedBack);
+        //System.out.println("******"+feedBack);
         int numWrong = Integer.parseInt(feedBackArr[1]);
 
         if (numCorrect > 0)
@@ -243,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                     wrongPosGuess.add(Character.toString(originalGuess.charAt(i)));
             }
             Collections.shuffle(wrongPosGuess);
-            Log.i("Testing","Wrong pos Guess: " + wrongPosGuess.toString());
+            //Log.i("Testing","Wrong pos Guess: " + wrongPosGuess.toString());
             int k =0;
             for (int i = 0; i < lockArr.length; i++)
             {
@@ -287,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
                             // exam thread2's answer and give feedback
                             // send answer and feedback to UI thread to display
                             // send feedback with GUESS_REQUEST
+                            Log.i("Testing","Thread1 Recieved guess and processing");
                             if (endGame)
                             {
                                 break;
@@ -296,8 +345,9 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 myMsg = uiHandler.obtainMessage(UPDATE_THREAD2_GUESS);
                                 myMsg.obj = "Thread2 guessed: " + opponentGuess + "\nThread2 Won!!!";
+                                myMsg.arg1 = 1;
                                 uiHandler.sendMessage(myMsg);
-                                endGame = true;
+
 
                                 break;
                             }
@@ -306,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
                             String displayText = "Thread2 guessed: " + opponentGuess + " feedback: "+feedBack;
                             myMsg = uiHandler.obtainMessage(UPDATE_THREAD2_GUESS);
                             myMsg.obj = displayText;
+                            myMsg.arg1 = 0;
                             try{Thread.sleep(2000);}
                             catch (InterruptedException e){System.out.println("Thread 1 interrupt");};
                             uiHandler.sendMessage(myMsg);
@@ -313,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
                             myMsg = thread2Handler.obtainMessage(GUESS_REQUEST);
                             myMsg.obj = feedBack;
                             thread2Handler.sendMessage(myMsg);
+
 
 
                             break;
@@ -325,16 +377,21 @@ public class MainActivity extends AppCompatActivity {
                             }
                             if(counter > 20)
                             {
+
                                 endGame = true;
                                 myMsg = uiHandler.obtainMessage(UPDATE_THREAD2_GUESS);
                                 myMsg.obj = "Reached 20 guesses";
+                                myMsg.arg1 = 1;
                                 break;
                             }
+                            try{Thread.sleep(2000);}
+                            catch (InterruptedException e){System.out.println("Thread 1 interrupt");};
                             String feedback = (String) msg.obj;
                             guess = thread1Strategy(feedback,guess);
                             myMsg = thread2Handler.obtainMessage(ANSWER_REQUEST);
                             myMsg.obj = guess;
                             thread2Handler.sendMessage(myMsg);
+                            Log.i("Testing","Thread1 sent feedback");
                             counter++;
                             break;
                     }
@@ -362,6 +419,10 @@ public class MainActivity extends AppCompatActivity {
             myMsg = thread2Handler.obtainMessage(ANSWER_REQUEST);
             myMsg.obj = guess;
             thread2Handler.sendMessage(myMsg);
+            Log.i("Testing","Thread1 sent Guess");
+
+            try{Thread.sleep(2000);}
+            catch (InterruptedException e){System.out.println("Thread1 interrupted!");};
 
             Looper.loop();
 
@@ -391,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
                             // exam thread2's answer and give feedback
                             // send answer and feedback to UI thread to display
                             // send feedback with GUESS_REQUEST
+                            Log.i("Testing","Thread2 Recieved guess and processing");
                             if (endGame)
                             {
                                 break;
@@ -400,8 +462,8 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 myMsg = uiHandler.obtainMessage(UPDATE_THREAD1_GUESS);
                                 myMsg.obj = "Thread1 guessed: " + opponentGuess+ "\nThread1 Won!!!";
+                                myMsg.arg1 = 1;
                                 uiHandler.sendMessage(myMsg);
-                                endGame = true;
 
                                 break;
                             }
@@ -409,15 +471,14 @@ public class MainActivity extends AppCompatActivity {
                             String displayText = "Thread1 guessed: " + opponentGuess + " feedback: "+feedBack;
                             myMsg = uiHandler.obtainMessage(UPDATE_THREAD1_GUESS);
                             myMsg.obj = displayText;
-                            try{Thread.sleep(2000);}
-                            catch (InterruptedException e){System.out.println("Thread 2 interrupt");};
+                            myMsg.arg1 = 0;
+                            //try{Thread.sleep(2000);}
+                            //catch (InterruptedException e){System.out.println("Thread 2 interrupt");};
                             uiHandler.sendMessage(myMsg);
 
                             myMsg = thread1Handler.obtainMessage(GUESS_REQUEST);
                             myMsg.obj = feedBack;
                             thread1Handler.sendMessage(myMsg);
-
-
                             break;
                         case(GUESS_REQUEST):
                             // make a stratigic guess based on feedback
@@ -431,13 +492,17 @@ public class MainActivity extends AppCompatActivity {
                                 endGame = true;
                                 myMsg = uiHandler.obtainMessage(UPDATE_THREAD1_GUESS);
                                 myMsg.obj = "Reached 20 guesses";
+                                myMsg.arg1 = 1;
                                 break;
                             }
+                            //try{Thread.sleep(2000);}
+                            //catch (InterruptedException e){System.out.println("Thread 2 interrupt");};
                             String feedback = (String) msg.obj;
                             guess = thread2Strategy(feedback,guess);
                             myMsg = thread1Handler.obtainMessage(ANSWER_REQUEST);
                             myMsg.obj = guess;
                             thread1Handler.sendMessage(myMsg);
+                            Log.i("Testing","Thread2 sent Guess");
                             counter++;
                             break;
                     }
@@ -464,6 +529,7 @@ public class MainActivity extends AppCompatActivity {
             myMsg = thread1Handler.obtainMessage(ANSWER_REQUEST);
             myMsg.obj = guess;
             thread1Handler.sendMessage(myMsg);
+            Log.i("Testing","Thread2 sent Guess");
 
 
 

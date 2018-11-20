@@ -4,58 +4,97 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:baselineAligned="false">
 
-    <android.support.constraint.ConstraintLayout
+
+    <RelativeLayout
         android:id="@+id/thread1Layout"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".5">
+
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:text="Player 1"
+            android:textSize="20sp"
+            android:textAlignment="center" />
+
         <TextView
             android:id="@+id/thread1Secret"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="39dp"
+            android:textAlignment="center"
+            android:textSize="30sp"
+            android:textColor="#ff0000"
+            android:textStyle="bold"/>
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:layout_marginTop="100dp">
 
 
             <TextView
                 android:id="@+id/thread1Guess"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="15dp"/>
         </ScrollView>
-    </android.support.constraint.ConstraintLayout>
 
+    </RelativeLayout>
 
-    <android.support.constraint.ConstraintLayout
+    <RelativeLayout
         android:id="@+id/thread2layout"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight=".5">
 
         <TextView
-            android:id="@+id/thread2Secret"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:text="Player 2"
+            android:textSize="20sp"
+            android:textAlignment="center" />
 
+        <TextView
+            android:id="@+id/thread2Secret"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="39dp"
+            android:textAlignment="center"
+            android:textSize="30sp"
+            android:textColor="#0000ff"
+            android:textStyle="bold"/>
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
+            android:layout_height="match_parent"
+            android:layout_marginTop="100dp">
 
             <TextView
                 android:id="@+id/thread2Guess"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="15dp"
+                 />
 
         </ScrollView>
 
 
-    </android.support.constraint.ConstraintLayout>
+    </RelativeLayout>
 
 </LinearLayout>

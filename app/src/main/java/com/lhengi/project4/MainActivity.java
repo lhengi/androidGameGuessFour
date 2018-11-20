@@ -28,12 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView thread2SecretView;
     private TextView thread2GuessView; // this field will hold the guesses made by thread1 on thread2's secret
 
-    // this will hold the secrets
+    public boolean endGame = false; // when msg.arg1 == 1 from worker threads then set this to true and stop the game
 
-    public boolean endGame = false;
-
-    public String thread1secretStr;
-    public String thread2secretStr;
 
 
     public static final int SET_SECRET_1 = 1;
@@ -54,13 +50,12 @@ public class MainActivity extends AppCompatActivity {
             {
                 case(SET_SECRET_1):
                     thread1SecretView.setText((String)msg.obj);
-                    thread1secretStr = (String) msg.obj;
                     break;
                 case(SET_SECRET_2):
                     thread2SecretView.setText((String)msg.obj);
-                    thread2secretStr = (String) msg.obj;
                     break;
                 case(UPDATE_THREAD1_GUESS):
+                    // append the latest guess that thread1 made on thread2's secret to player1's field
                     if (endGame)
                         break;
                     String displayText = (String) msg.obj;
@@ -69,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                         endGame = true;
                     break;
                 case(UPDATE_THREAD2_GUESS):
+                    // append the latest guess that thread2 made on thread1's secret to player2's field
                     if (endGame)
                         break;
                     String displayText2 = (String) msg.obj;
@@ -99,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    // use a menu instead of some button to start a new game
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -179,6 +177,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // keep the correct digits in correct positions
+    // then guess the rest
     public String thread2Strategy(String feedBack, String originalGuess)
     {
         String guess = "";
@@ -232,6 +232,9 @@ public class MainActivity extends AppCompatActivity {
         return guess;
     }
 
+    // keep the correct digits in the correct positions
+    // if there's one wrong position then shuffle them and put them in new position
+    // if no wrong position then randomly select
     public String thread1Strategy(String feedBack, String originalGuess)
     {
         String guess = "";

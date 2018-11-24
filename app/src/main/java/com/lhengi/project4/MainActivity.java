@@ -15,7 +15,6 @@ import android.os.Message;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
@@ -350,8 +349,16 @@ public class MainActivity extends AppCompatActivity {
                                 myMsg.obj = "Thread2 guessed: " + opponentGuess + "\nThread2 Won!!!";
                                 myMsg.arg1 = 1;
                                 uiHandler.sendMessage(myMsg);
+                                break;
+                            }
 
+                            if(counter > 20)
+                            {
 
+                                endGame = true;
+                                myMsg = uiHandler.obtainMessage(UPDATE_THREAD2_GUESS);
+                                myMsg.obj = "Reached 20 guesses";
+                                myMsg.arg1 = 1;
                                 break;
                             }
 
@@ -364,12 +371,12 @@ public class MainActivity extends AppCompatActivity {
                             catch (InterruptedException e){System.out.println("Thread 1 interrupt");};
                             uiHandler.sendMessage(myMsg);
 
-                            myMsg = thread2Handler.obtainMessage(GUESS_REQUEST);
-                            myMsg.obj = feedBack;
-                            thread2Handler.sendMessage(myMsg);
+                            //myMsg = thread2Handler.obtainMessage(GUESS_REQUEST);
+                            //myMsg.obj = feedBack;
+                            //thread2Handler.sendMessage(myMsg);
+                            thread2Handler.post(new Thread2GuessRequest(feedBack,opponentGuess));
 
-
-
+                            counter++;
                             break;
                         case(GUESS_REQUEST):
                             // make a strategic guess based on feedback
@@ -378,15 +385,7 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 break;
                             }
-                            if(counter > 20)
-                            {
 
-                                endGame = true;
-                                myMsg = uiHandler.obtainMessage(UPDATE_THREAD2_GUESS);
-                                myMsg.obj = "Reached 20 guesses";
-                                myMsg.arg1 = 1;
-                                break;
-                            }
                             try{Thread.sleep(2000);}
                             catch (InterruptedException e){System.out.println("Thread 1 interrupt");};
                             String feedback = (String) msg.obj;
@@ -395,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
                             myMsg.obj = guess;
                             thread2Handler.sendMessage(myMsg);
                             Log.i("Testing","Thread1 sent feedback");
-                            counter++;
+
                             break;
                     }
                 }
@@ -452,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
                     switch (msg.what)
                     {
                         case(ANSWER_REQUEST):
-                            // exam thread2's answer and give feedback
+                            // exam thread1's answer and give feedback
                             // send answer and feedback to UI thread to display
                             // send feedback with GUESS_REQUEST
                             Log.i("Testing","Thread2 Recieved guess and processing");
@@ -470,6 +469,14 @@ public class MainActivity extends AppCompatActivity {
 
                                 break;
                             }
+                            if(counter > 20)
+                            {
+                                endGame = true;
+                                myMsg = uiHandler.obtainMessage(UPDATE_THREAD1_GUESS);
+                                myMsg.obj = "Reached 20 guesses";
+                                myMsg.arg1 = 1;
+                                break;
+                            }
                             String feedBack = giveFeedBack(opponentGuess,secretStr);
                             String displayText = "Thread1 guessed: " + opponentGuess + " feedback: "+feedBack;
                             myMsg = uiHandler.obtainMessage(UPDATE_THREAD1_GUESS);
@@ -482,7 +489,9 @@ public class MainActivity extends AppCompatActivity {
                             myMsg = thread1Handler.obtainMessage(GUESS_REQUEST);
                             myMsg.obj = feedBack;
                             thread1Handler.sendMessage(myMsg);
+                            counter++;
                             break;
+                            /*
                         case(GUESS_REQUEST):
                             // make a stratigic guess based on feedback
                             // send guess to thread2
@@ -507,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
                             thread1Handler.sendMessage(myMsg);
                             Log.i("Testing","Thread2 sent Guess");
                             counter++;
-                            break;
+                            break;*/
                     }
                 }
             };
@@ -539,5 +548,34 @@ public class MainActivity extends AppCompatActivity {
             Looper.loop();
         }
 
+    }
+
+    public class Thread2GuessRequest implements Runnable
+    {
+        String answerFeedBack;
+        String guess;
+        Message myMsg;
+        public Thread2GuessRequest(String feedback, String guess)
+        {
+            answerFeedBack = feedback;
+            this.guess = guess;
+        }
+        public void run()
+        {
+            if (endGame)
+            {
+                return;
+            }
+
+            //try{Thread.sleep(2000);}
+            //catch (InterruptedException e){System.out.println("Thread 2 interrupt");};
+            String feedback = (String) answerFeedBack;
+            guess = thread2Strategy(feedback,guess);
+            myMsg = thread1Handler.obtainMessage(ANSWER_REQUEST);
+            myMsg.obj = guess;
+            thread1Handler.sendMessage(myMsg);
+            Log.i("Testing","Thread2 sent Guess with a runnable");
+
+        }
     }
 }
